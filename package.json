@@ -1,0 +1,19 @@
+{
+  "name": "audiorecorder",
+  "version": "1.0.0",
+  "description": "myaudio",
+  "main": "js/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/addpipe/simple-recorderjs-demo.git"
+  },
+  "author": "Min Soo Kim",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/addpipe/simple-recorderjs-demo/issues"
+  },
+  "homepage": "https://github.com/addpipe/simple-recorderjs-demo#readme"
+}

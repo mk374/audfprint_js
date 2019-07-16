@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Simple Recorder</title>
+    <script type = "text/javascript" src = "js/analyze.js"></script>
+    <script type = "text/javascript" src = "js/stft.js"></script>
+    <!-- importing a numpy-like package into javascript  -->
+    <script src="https://cdn.jsdelivr.net/gh/nicolaspanel/numjs@0.15.1/dist/numjs.min.js"></script>
+  </head>
+  <body>
+    <h1>Simple Recorder</h1>
+
+    <div id="controls">
+  	 <button id="recordButton">Record</button>
+  	 <button id="pauseButton" disabled>Pause</button>
+  	 <button id="stopButton" disabled>Stop</button>
+    </div>
+    <div id="formats">Format: start recording to see sample rate</div>
+    <div id = "seconds"></div>
+    <div id = "latest-audio"></div>
+  	<h3>Recordings</h3>
+    <ol id="recordingsList"></ol>
+    
+
+    <!-- inserting these scripts at the end to be able to use all the elements in the DOM -->
+    <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
+  	<script src="js/app.js"></script>
+    
+  </body>
+</html>
