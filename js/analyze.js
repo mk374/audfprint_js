@@ -141,11 +141,8 @@ class Analyzer {
 
             for(let i =0; i<scols; i++) {
                 var s_col = sgram.slice(null, [i,i+1]);
-                // i think the above line is wrong
-                //it should be: var s_col = sgram.slice(null,i)???
-                //don't know CHECK
                 var sdmax_temp = locmax(s_col);
-                var sdmaxposs = [];
+                var sdmaxposs = [];  //keeps track of peaks above threshold
                 for (let j=0; j<sdmax_temp.shape[0]; j++) {
                     if (s_col.get(sdmax_temp.get(j)) > sthresh.get(sdmax_temp.get(j))) {
                         sdmaxposs.push(sdmax_temp.get(j));
