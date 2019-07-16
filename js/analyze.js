@@ -24,20 +24,20 @@ let DF_SHIFT = DT_BITS;
 let DT_MASK = (1 << DT_BITS) - 1;
 
 function locmax(vec) {
-    var indices = [];
-    if (vec[0] > vec[1]) {
-        indices.push(0);
-    }
-    for (let i=1; i < vec.length - 1; i++) {
-        if (vec[i-1] <= vec[0] && vec[i+1] > vec[i]) {
-            indices.push(i);
-        }
-    }
-    if (vec[vec.length-1] > vec[vec.length-2]) {
-        indices.push(vec.length-1);
-    }
-    return nj.array(indices);
- }
+   var indices = [];
+   if (vec[0] > vec[1]) {
+       indices.push(0);
+   }
+   for (let i=1; i < vec.length - 1; i++) {
+       if (vec[i-1] <= vec[i] && vec[i+1] < vec[i]) {
+           indices.push(i);
+       }
+   }
+   if (vec[vec.length-1] > vec[vec.length-2]) {
+       indices.push(vec.length-1);
+   }
+   return nj.array(indices);
+}
 
 //override elements in arr1 with correspoinding elements in arr2 if smaller: sub np.maximum()
 function max_override(arr1, arr2) {
@@ -198,12 +198,24 @@ class Analyzer {
                     }
                 }
             }
-
-            
+            sgram = sgram.subtract(sgram.mean());
+        } else {
+            alert("Warning: input signal is identically zero.")
         }
-    
         
+        var peaks = this._decaying_threshold_fwd_prune(sgram, a_dec);
+        peaks = this. _decaying_threshold_bwd_prune_peaks(sgram, peaks, a_dec);
 
-
+        var scols = nj.shape(sgram)[1];
+        var pklist = [];
+        for (let i=0; i<scols; i++) {
+            var peaks_temp = peaks.slice(null, [i, i+1]);
+            for (let j=0; j<peaks_temp.shape[0]; j++) {
+                if (peaks_temp.get(j) !== 0) {
+                    pklist.push([i,j]);
+                }
+            }
+        }
+        return nj.array(pklist);
     }
 }
