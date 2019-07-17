@@ -124,7 +124,12 @@ function landmarks2hashes(landmarks){
     for (let i = 0; i < landmarks.shape[0]; i++){
         hashes.set(i, 0, landmarks.get(i,0))
     }
-    //first item of the or byte operator
+    // hashes[:, 1] = (((landmarks[:, 1] & B1_MASK) << B1_SHIFT) 
+    //                 | (((landmarks[:, 2] - landmarks[:, 1]) & DF_MASK)
+    //                    << DF_SHIFT)
+    //                 | (landmarks[:, 3] & DT_MASK))
+
+    // the below is the representation of the python code above
     for (let j = 0; j < landmarks.shape[0]; i ++){
         let temp1 = landmarks.get(j, 1) & B1_MASK;
         temp1 = temp1 << B1_SHIFT;
@@ -134,7 +139,6 @@ function landmarks2hashes(landmarks){
         let temp3 = landmarks.get(j, 3) & DT_MASK;
         hashes.set(j,1,(temp1|temp2|temp3));        
     }
-    
     return hashes;
 }
 
