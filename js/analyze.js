@@ -46,8 +46,8 @@ function locmax(vec) {
 // These are used in the threshold functions
 /**
  * Zip two arrays togeter
- * @param  {arrays} arrays the two arrays are in the format[array1, array2]
- * @return {arrays} the zipped arrays
+ * @param  {Array} arrays the two arrays are in the format[array1, array2]
+ * @return {Array} the zipped arrays
  */
 function zip(arrays) {
     return Array.apply(null,Array(arrays[0].length)).map(function(_,i){
@@ -96,6 +96,7 @@ function max_override(arr1, arr2) {
  * Get elements pf arr1 indicated by indices on arr2 
  * @param {nj.array} arr1 
  * @param {nj.array} arr2 
+ * @return {nj.array} return the array 
  */
 function getArray(arr1, arr2) {
     arr2 = arr2.tolist();
@@ -105,7 +106,37 @@ function getArray(arr1, arr2) {
     }
     return nj.array(temp);
 }
-
+/**
+ * Convert a list of (time, bin1, bin2, dtime) landmarks
+    into a list of (time, hash) pairs where the hash combines
+    the three remaining values.
+ * @param {Array} landmarks The list of (time, bin1, bin2, dtime)
+ * @return {nj.array} (time,hash) pairs
+ */
+function landmarks2hashes(landmarks){
+    let landmarks = nj.array(landmarks);
+    
+    //deal with special case of empty landmarks
+    if (landmarks.shape[0] == 0){
+        return nj.zeros([0,2], 'int32');
+    }
+    let hashes = nj.zeros([landmarks.shape[0], 2], 'int32');
+    for (let i = 0; i < landmarks.shape[0]; i++){
+        hashes.set(i, 0, landmarks.get(i,0))
+    }
+    //first item of the or byte operator
+    for (let j = 0; j < landmarks.shape[0]; i ++){
+        let temp1 = landmarks.get(j, 1) & B1_MASK;
+        temp1 = temp1 << B1_SHIFT;
+        let temp2 = landmarks.get(j, 2) - landmarks.get(j, 1);
+        temp2 = temp2 & DF_MASK;
+        temp2 = temp2 << DF_SHIFT;
+        let temp3 = landmarks.get(j, 3) & DT_MASK;
+        hashes.set(j,1,(temp1|temp2|temp3));        
+    }
+    
+    return hashes;
+}
 
 class Analyzer {
     constructor(density=DENSITY) {
