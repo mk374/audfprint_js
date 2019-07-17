@@ -149,7 +149,8 @@ class Analyzer {
                     sdmaxposs.push(sdmax_temp.get(j));
                 }
             }
-            sdmaxposs = sdmaxposs.sort();
+            // this sorts in reverse order. a bit weird but yeah
+            sdmaxposs = sdmaxposs.sort(function(a, b){return b-a});
             for (let m =0; m<this.maxpksperframe; m++) {
                 sthresh = max_override(sthreshold, __sp_v.slice([(__sp_pts - sdmaxposs[m]), (2 * __sp_pts - sdmaxposs[m])]).multiply(s_cols.get(sdmaxposs[m])));
                 peaks.set(sdmaxposs[m], i, 1);
