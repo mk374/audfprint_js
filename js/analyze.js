@@ -24,21 +24,22 @@ let DF_SHIFT = DT_BITS;
 let DT_MASK = (1 << DT_BITS) - 1;
 
 function locmax(vec) {
-    var indices = [];
-    if (vec[0] > vec[1]) {
-        indices.push(0);
-    }
-    for (let i=1; i < vec.length - 1; i++) {
-        if (vec[i-1] <= vec[0] && vec[i+1] > vec[i]) {
-            indices.push(i);
-        }
-    }
-    if (vec[vec.length-1] > vec[vec.length-2]) {
-        indices.push(vec.length-1);
-    }
-    return nj.array(indices);
- }
+   var indices = [];
+   if (vec[0] > vec[1]) {
+       indices.push(0);
+   }
+   for (let i=1; i < vec.length - 1; i++) {
+       if (vec[i-1] <= vec[i] && vec[i+1] < vec[i]) {
+           indices.push(i);
+       }
+   }
+   if (vec[vec.length-1] > vec[vec.length-2]) {
+       indices.push(vec.length-1);
+   }
+   return nj.array(indices);
+}
 
+//override elements in arr1 with correspoinding elements in arr2 if smaller: sub np.maximum()
 function max_override(arr1, arr2) {
     arr1 = arr1.tolist();
     arr2 = arr2.tolist();
@@ -124,36 +125,38 @@ class Analyzer {
 
     _decaying_threshold_fwd_prune(sgram, a_dec) {
         //Yet to be tested
-            var srows = sgram.shape[0];
-            var scols = sgram.shape[1];
-            let max_array = [];
-            var sgram_temp = sgram.slice(null, [0, Math.min(10,scols)]);
-            for (let i=0; i<srows; i++) {
-                let row_max = sgram_temp.slice([i,i+1], null).max();
-                max_array.push(row_max);
-            }
-            max_array = nj.array(max_array);
-            var sthresh = self.spreadpeaksinvector(max_array, this.f_sd);
-            var peaks = nj.zeros([srows, scols]);
+        var srows = sgram.shape[0];
+        var scols = sgram.shape[1];
+        let max_array = [];
+        var sgram_temp = sgram.slice(null, [0, Math.min(10,scols)]);
+        for (let i=0; i<srows; i++) {
+            let row_max = sgram_temp.slice([i,i+1], null).max();
+            max_array.push(row_max);
+        }
+        max_array = nj.array(max_array);
+        var sthresh = self.spreadpeaksinvector(max_array, this.f_sd);
+        var peaks = nj.zeros([srows, scols]);
 
-            let __sp_pts = len(sthresh);
-            let __sp_v = this.__sp_vals;
+        let __sp_pts = len(sthresh);
+        let __sp_v = this.__sp_vals;
 
-            for(let i =0; i<scols; i++) {
-                var s_col = sgram.slice(null, [i,i+1]);
-                // i think the above line is wrong
-                //it should be: var s_col = sgram.slice(null,i)???
-                //don't know CHECK
-                var sdmax_temp = locmax(s_col);
-                var sdmaxposs = [];
-                for (let j=0; j<sdmax_temp.shape[0]; j++) {
-                    if (s_col.get(sdmax_temp.get(j)) > sthresh.get(sdmax_temp.get(j))) {
-                        sdmaxposs.push(sdmax_temp.get(j));
-                    }
+        for(let i =0; i<scols; i++) {
+            var s_col = sgram.slice(null, [i,i+1]);
+            var sdmax_temp = locmax(s_col);
+            var sdmaxposs = [];  //keeps track of indices of peaks above threshold
+            for (let j=0; j<sdmax_temp.shape[0]; j++) {
+                if (s_col.get(sdmax_temp.get(j)) > sthresh.get(sdmax_temp.get(j))) {
+                    sdmaxposs.push(sdmax_temp.get(j));
                 }
-                
             }
-
+            sdmaxposs = sdmaxposs.sort();
+            for (let m =0; m<this.maxpksperframe; m++) {
+                sthresh = max_override(sthreshold, __sp_v.slice([(__sp_pts - sdmaxposs[m]), (2 * __sp_pts - sdmaxposs[m])]).multiply(s_cols.get(sdmaxposs[m])));
+                peaks.set(sdmaxposs[m], i, 1);
+            }
+            sthresh = sthresh.multiply(a_dec);
+        }
+        return peaks;
     }
 
     _decaying_threshold_bwd_prune_peaks(sgram, peaks, a_dec) {
@@ -228,12 +231,24 @@ class Analyzer {
                     }
                 }
             }
-
-            
+            sgram = sgram.subtract(sgram.mean());
+        } else {
+            alert("Warning: input signal is identically zero.")
         }
-    
         
+        var peaks = this._decaying_threshold_fwd_prune(sgram, a_dec);
+        peaks = this. _decaying_threshold_bwd_prune_peaks(sgram, peaks, a_dec);
 
-
+        var scols = nj.shape(sgram)[1];
+        var pklist = [];
+        for (let i=0; i<scols; i++) {
+            var peaks_temp = peaks.slice(null, [i, i+1]);
+            for (let j=0; j<peaks_temp.shape[0]; j++) {
+                if (peaks_temp.get(j) !== 0) {
+                    pklist.push([i,j]);
+                }
+            }
+        }
+        return nj.array(pklist);
     }
 }

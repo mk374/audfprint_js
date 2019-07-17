@@ -3,13 +3,16 @@
   <head>
     <meta charset="UTF-8">
     <title>Simple Recorder</title>
-    <script type = "text/javascript" src = "js/analyze.js"></script>
-    <script type = "text/javascript" src = "js/stft.js"></script>
     <!-- importing a numpy-like package into javascript  -->
     <script src="https://cdn.jsdelivr.net/gh/nicolaspanel/numjs@0.15.1/dist/numjs.min.js"></script>
+    <script type = "text/javascript" src="./rfft/complex.js"></script>
+    <script type = "text/javascript" src="./rfft/rfft.js"></script>
+    <script type = "text/javascript" src = "js/stft.js"></script>
+    <script type = "text/javascript" src = "js/analyze.js"></script>
+    
   </head>
   <body>
-    <h1>Simple Recorder</h1>
+    <h1>Simple AudioFingerPrinter</h1>
 
     <div id="controls">
   	 <button id="recordButton">Record</button>
@@ -26,6 +29,14 @@
     <!-- inserting these scripts at the end to be able to use all the elements in the DOM -->
     <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
   	<script src="js/app.js"></script>
-    
+    <script>
+        let arr = nj.array([1,2,3,4]);
+        //nj.config.printThreshold = 10;
+        //arr=pad_reflect(arr, 1);
+        nj.config.nFloatingValues=15;
+        for (a in arr) {
+          console.log(a);
+        };
+    </script>
   </body>
 </html>

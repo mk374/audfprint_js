@@ -1,5 +1,5 @@
 {
-  "name": "audiorecorder",
+  "name": "audio fingerprinter",
   "version": "1.0.0",
   "description": "myaudio",
   "main": "js/app.js",
@@ -10,7 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/addpipe/simple-recorderjs-demo.git"
   },
-  "author": "Min Soo Kim",
+  "author": "Min Soo Kim, Frank Geng",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/addpipe/simple-recorderjs-demo/issues"
