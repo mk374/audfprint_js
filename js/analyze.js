@@ -23,6 +23,10 @@ let DF_MASK = (1 << DF_BITS) - 1;
 let DF_SHIFT = DT_BITS;
 let DT_MASK = (1 << DT_BITS) - 1;
 
+/**
+ * Returns local maximum's indices in nj.array format
+ * @param {1-D nj.array} vec 
+ */
 function locmax(vec) {
    var indices = [];
    if (vec[0] > vec[1]) {
@@ -39,7 +43,11 @@ function locmax(vec) {
    return nj.array(indices);
 }
 
-//override elements in arr1 with correspoinding elements in arr2 if smaller: sub np.maximum()
+/**
+ * Override elements in arr1 with correspoinding elements in arr2 if arr1<arr2
+ * @param {nj.array} arr1 
+ * @param {nj.array} arr2 
+ */
 function max_override(arr1, arr2) {
     arr1 = arr1.tolist();
     arr2 = arr2.tolist();
@@ -51,6 +59,11 @@ function max_override(arr1, arr2) {
     return nj.array(arr1);
 }
 
+/**
+ * Get elements pf arr1 indicated by indices on arr2 
+ * @param {nj.array} arr1 
+ * @param {nj.array} arr2 
+ */
 function getArray(arr1, arr2) {
     arr2 = arr2.tolist();
     var temp = [];
@@ -59,6 +72,7 @@ function getArray(arr1, arr2) {
     }
     return nj.array(temp);
 }
+
 
 class Analyzer {
     constructor(density=DENSITY) {
@@ -93,6 +107,12 @@ class Analyzer {
             this.__sp_vals = [];
     }
 
+    /**
+     * Create a blurred version of vector, where each of the local maxes 
+     * is spread by a gaussian with SD <width>.
+     * @param {nj.array} vector 
+     * @param {number} width 
+     */
     spreadpeaksinvector(vector, width=4.0) {
         //yet to be tested
         vector = vector.tolist();
@@ -101,6 +121,15 @@ class Analyzer {
         return this.spreadpeaks(peaks, nj.array(vector), npts, width);
     }
 
+    /**
+     * Generate a vector consisting of the max of a set of Gaussian bumps
+     * @param {1-D nj.array} peaks list of (index, value) pairs giving the center point and height
+        of each gaussian
+     * @param {1-D nj.array} vector Magnitude vector
+     * @param {number} npoints the length of the output vector (needed if base not provided)
+     * @param {number} width the half-width of the Gaussians to lay down at each point
+     * @param {nj.array} base optional initial lower bound to place Gaussians above
+     */
     spreadpeaks(peaks, vector, npoints=null, width=4.0, base=null) {
         // yet to be tested
         if (base === null) {
@@ -123,6 +152,11 @@ class Analyzer {
         return vec;
     }
 
+    /**
+     * forward pass of findpeaks initial threshold envelope based on peaks in first 10 frames
+     * @param {nj.array} sgram 
+     * @param {number} a_dec 
+     */
     _decaying_threshold_fwd_prune(sgram, a_dec) {
         //Yet to be tested
         var srows = sgram.shape[0];
@@ -149,8 +183,18 @@ class Analyzer {
                     sdmaxposs.push(sdmax_temp.get(j));
                 }
             }
-            // this sorts in reverse order. a bit weird but yeah
-            sdmaxposs = sdmaxposs.sort(function(a, b){return b-a});
+            //add magnitudes to each index in sdmaxposs for sorting purpose
+            for (let k=0; k<sdmaxposs.length; k++) {
+                sdmaxposs[k] = [sdmaxposs[k], s_col[sdmaxposs[k]]];
+            }
+            // this sorts in reverse order of magnitudes
+            sdmaxposs = sdmaxposs.sort(function(a, b){return (b[1]-a[1])});
+
+            //change back to array of indices after sorting
+            for (let k=0; k<sdmaxposs.length; k++) {
+                sdmaxposs[k] = sdmaxposs[k][0];
+            }
+
             for (let m =0; m<this.maxpksperframe; m++) {
                 sthresh = max_override(sthreshold, __sp_v.slice([(__sp_pts - sdmaxposs[m]), (2 * __sp_pts - sdmaxposs[m])]).multiply(s_cols.get(sdmaxposs[m])));
                 peaks.set(sdmaxposs[m], i, 1);
@@ -160,6 +204,12 @@ class Analyzer {
         return peaks;
     }
 
+    /**
+     * backwards pass of findpeaks
+     * @param {nj.array} sgram 
+     * @param {nj.array} peaks 
+     * @param {number} a_dec 
+     */
     _decaying_threshold_bwd_prune_peaks(sgram, peaks, a_dec) {
         //yet to be tested
         let scols = sgram.shape[1];
@@ -206,7 +256,17 @@ class Analyzer {
 
     }
 
-    findpeaks(d,sr=11025){
+    /**
+     * Find the local peaks in the spectrogram as basis for fingerprints.
+        Returns a list of (time_frame, freq_bin) pairs.
+     * @param {array} d Input waveform as 1D vector
+     * @param {number} sr Sampling rate of d (not used)
+     * @return {nj.array}    Ordered list of landmark peaks found in STFT.  First value of
+            each pair is the time index (in STFT frames, i.e., units of
+            n_hop/sr secs), second is the FFT bin (in units of sr/n_fft
+            Hz).
+     */
+    findpeaks(d, sr=11025){
         if (d.length == 0){
             return [];
         }
@@ -251,5 +311,24 @@ class Analyzer {
             }
         }
         return nj.array(pklist);
+    }
+
+    /**
+     * Take a list of local peaks in spectrogram
+        and form them into pairs as landmarks.
+        pklist is a column-sorted list of (col, bin) pairs as created
+        by findpeaks().
+     * @param {nj.array} pklist 
+     * @return {nj.array}  a list of (col, peak, peak2, col2-col) landmark descriptors.
+
+     */
+    peaks2landmarks(pklist) {
+        var landmarks = [];
+        pklist = pklist.tolist();
+        if (pklist.shape[0] > 0) {
+            //Find column of the final peak in the list
+            var scols = pklist[-1][0] + 1;
+
+        }
     }
 }
