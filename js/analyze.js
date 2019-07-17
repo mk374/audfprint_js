@@ -43,6 +43,39 @@ function locmax(vec) {
    return nj.array(indices);
 }
 
+// These are used in the threshold functions
+/**
+ * Zip two arrays togeter
+ * @param  {arrays} arrays the two arrays are in the format[array1, array2]
+ * @return {arrays} the zipped arrays
+ */
+function zip(arrays) {
+    return Array.apply(null,Array(arrays[0].length)).map(function(_,i){
+        return arrays.map(function(array){return array[i]})
+    });
+};
+//used for sorting // reverse = True
+/**
+ * A Comparator funciton
+ * @param  {Number} a The first number
+ * @param  {Number} b The second number
+ * @return {Number} the resulting comparison
+ */
+function Comparator(a, b) {
+	if (a[0] > b[0]) return -1;
+	if (a[0] < b[0]) return 1;
+	if (a[0] === b[0]){
+		if (a[1] > b[1]){
+			return -1
+		}
+		if (a[1] < b[1]){
+			return 1
+		}
+	}
+	return 0;
+};
+
+//override elements in arr1 with correspoinding elements in arr2 if smaller: sub np.maximum()
 /**
  * Override elements in arr1 with correspoinding elements in arr2 if arr1<arr2
  * @param {nj.array} arr1 
@@ -132,6 +165,7 @@ class Analyzer {
      */
     spreadpeaks(peaks, vector, npoints=null, width=4.0, base=null) {
         // yet to be tested
+        //assume it to be an array of arrays
         if (base === null) {
             var vec = nj.zeros([1, npoints]);
         }
@@ -220,39 +254,48 @@ class Analyzer {
             // pkposs = np.nonzero(peaks[:, col-1])[0]
 
             let pkposs_nj = peaks.slice(null, [col-1, col]);
-            let pkposs = nj.array();
+            let pkposs = [];
             for (let i = 0; i < pkposs_nj.size; i ++){
                 if (pkposs_nj.get(i,0) > 0){
-                    pkposs = nj.concatenate(pkposs, nj.array([i]));
+                    pkposs.push(i);
                 }
             }
             
             //peakvals = sgram[pkposs, col-1]
             //check if peakvals is one dimensional (i.e (1,x))
-            let peakvals = nj.array()
+            let peakvals = [];
             for (let i = 0; i < pkposs.size; i ++){
-                let temp = nj.array(sgram.get(pkposs.get(i), col-1));
-                peakvals = nj.concatenate(peakvals, temp);
+                let temp = sgram.get(pkposs.get(i), col-1);
+                peakvals.push(temp);
             }
-
             
+            // peakvals and pkposs should be the same length
+            let zip = zip(peakvals, pkposs);
+            
+            // this is not a numjs array
+            var bigArray = zip.sort(Comparator);
 
+            for (let j = 0; j < bigArray.length; j ++){
+                let val = bigArray[j][0];
+                let peakpos = bigArray[j][1];
+                if (val >= sthresh[peakpos]){
+                    //based on assumption that spreadpeaks takes in
+                    //array of arrays as an input
 
-            var sdmax_temp = locmax(s_col);
-            var sdmaxposs = [];  //keeps track of indices of peaks above threshold
-            for (let j=0; j<sdmax_temp.shape[0]; j++) {
-                if (s_col.get(sdmax_temp.get(j)) > sthresh.get(sdmax_temp.get(j))) {
-                    sdmaxposs.push(sdmax_temp.get(j));
+        //ask about spreadpeaks......
+                    sthresh = spreadpeaks([[peakpos, val]], base=sthresh, width=this.f_sd)
+                    if (col < scols){
+                        peaks.set(peakpos, col,0);
+                    }
+                }
+                else{
+                    peaks.set(peakpos, col - 1,0);
                 }
             }
-            sdmaxposs = sdmaxposs.sort();
-            for (let i =0; i<this.maxpksperframe; i++) {
-                sthresh = max_override(sthreshold, __sp_v.slice([__sp_pts - sdmaxposs[i], 2 * __sp_pts - sdmaxposs[i]]).multiply(s_cols.get(i)));
-            }
+            sthresh = sthresh.multiply(a_dec);
  
-            
-
         }
+        return peaks;
 
     }
 
