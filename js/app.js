@@ -1,4 +1,33 @@
+function zip(arrays) {
+    return Array.apply(null,Array(arrays[0].length)).map(function(_,i){
+        return arrays.map(function(array){return array[i]})
+    });
+};
+a = [32,4,23,4, 5]
+b = [6,9,8,7]
+c = zip([a,b]);
+c.forEach(function(entry) {
+    console.log(entry);
+});
 
+function Comparator(a, b) {
+	if (a[0] > b[0]) return -1;
+	if (a[0] < b[0]) return 1;
+	if (a[0] === b[0]){
+		if (a[1] > b[1]){
+			return -1
+		}
+		if (a[1] < b[1]){
+			return 1
+		}
+	}
+	return 0;
+  }
+ 
+
+c.sort(Comparator).forEach(function(entry) {
+    console.log(entry);
+});
 //webkitURL is deprecated but nevertheless
 URL = window.URL || window.webkitURL;
 
