@@ -155,14 +155,14 @@ function stopRecording() {
 	// console.log(tenSecondArray);
 
 	var fftData = nj.float32(tenSecondArray);
-	download(fftData);
+	// download(fftData);
 
 	let data = frame(fftData, 512, 256);
 	
 	// ------------------------------------------------------------------------------------>
 	//COMPUTING HASHES HERE
 	var analyzer = new Analyzer();
-	analyzer.findpeaks([2,3]);
+	// analyzer.findpeaks([2,3]);
 
 
 
