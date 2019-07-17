@@ -320,7 +320,6 @@ class Analyzer {
         by findpeaks().
      * @param {nj.array} pklist 
      * @return {nj.array}  a list of (col, peak, peak2, col2-col) landmark descriptors.
-
      */
     peaks2landmarks(pklist) {
         var landmarks = [];
