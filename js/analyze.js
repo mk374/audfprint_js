@@ -149,7 +149,8 @@ class Analyzer {
                     sdmaxposs.push(sdmax_temp.get(j));
                 }
             }
-            sdmaxposs = sdmaxposs.sort();
+            // this sorts in reverse order. a bit weird but yeah
+            sdmaxposs = sdmaxposs.sort(function(a, b){return b-a});
             for (let m =0; m<this.maxpksperframe; m++) {
                 sthresh = max_override(sthreshold, __sp_v.slice([(__sp_pts - sdmaxposs[m]), (2 * __sp_pts - sdmaxposs[m])]).multiply(s_cols.get(sdmaxposs[m])));
                 peaks.set(sdmaxposs[m], i, 1);
@@ -159,14 +160,47 @@ class Analyzer {
         return peaks;
     }
 
-    _decaying_threshold_bwd_prune_peaks(sgram, peaks,a_dec) {
+    _decaying_threshold_bwd_prune_peaks(sgram, peaks, a_dec) {
         //yet to be tested
         let scols = sgram.shape[1];
         //backwards filter to rpune peaks
         //sthresh gets the last column of each row
         let sthresh = spreadpeaksinvector(sgram.slice(null, -1).reshape(1,sgram.shape[0]));
         for (let col = scols; col > 0; col --){
-            let pkposs = 2;
+            // pkposs = np.nonzero(peaks[:, col-1])[0]
+
+            let pkposs_nj = peaks.slice(null, [col-1, col]);
+            let pkposs = nj.array();
+            for (let i = 0; i < pkposs_nj.size; i ++){
+                if (pkposs_nj.get(i,0) > 0){
+                    pkposs = nj.concatenate(pkposs, nj.array([i]));
+                }
+            }
+            
+            //peakvals = sgram[pkposs, col-1]
+            //check if peakvals is one dimensional (i.e (1,x))
+            let peakvals = nj.array()
+            for (let i = 0; i < pkposs.size; i ++){
+                let temp = nj.array(sgram.get(pkposs.get(i), col-1));
+                peakvals = nj.concatenate(peakvals, temp);
+            }
+
+            
+
+
+            var sdmax_temp = locmax(s_col);
+            var sdmaxposs = [];  //keeps track of indices of peaks above threshold
+            for (let j=0; j<sdmax_temp.shape[0]; j++) {
+                if (s_col.get(sdmax_temp.get(j)) > sthresh.get(sdmax_temp.get(j))) {
+                    sdmaxposs.push(sdmax_temp.get(j));
+                }
+            }
+            sdmaxposs = sdmaxposs.sort();
+            for (let i =0; i<this.maxpksperframe; i++) {
+                sthresh = max_override(sthreshold, __sp_v.slice([__sp_pts - sdmaxposs[i], 2 * __sp_pts - sdmaxposs[i]]).multiply(s_cols.get(i)));
+            }
+ 
+            
 
         }
 
