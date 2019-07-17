@@ -30,13 +30,11 @@
     <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
   	<script src="js/app.js"></script>
     <script>
-        let arr = nj.array([1,2,3,4]);
+        let arr = nj.array([[1,2],[3,2],[4,5]]);
         //nj.config.printThreshold = 10;
         //arr=pad_reflect(arr, 1);
-        nj.config.nFloatingValues=15;
-        for (a in arr) {
-          console.log(a);
-        };
+        //nj.config.nFloatingValues=15;
+        console.log(arr.toString());
     </script>
   </body>
 </html>
