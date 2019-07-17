@@ -44,12 +44,23 @@ function locmax(vec) {
 }
 
 // These are used in the threshold functions
+/**
+ * Zip two arrays togeter
+ * @param  {arrays} arrays the two arrays are in the format[array1, array2]
+ * @return {arrays} the zipped arrays
+ */
 function zip(arrays) {
     return Array.apply(null,Array(arrays[0].length)).map(function(_,i){
         return arrays.map(function(array){return array[i]})
     });
 };
 //used for sorting // reverse = True
+/**
+ * A Comparator funciton
+ * @param  {Number} a The first number
+ * @param  {Number} b The second number
+ * @return {Number} the resulting comparison
+ */
 function Comparator(a, b) {
 	if (a[0] > b[0]) return -1;
 	if (a[0] < b[0]) return 1;
